@@ -1,6 +1,6 @@
 # OpenRouter Chat
 
-Local chat interface for OpenRouter API with multi-model support.
+Local chat interface for OpenRouter API with assistant prefill and multi-model support.
 
 ![Preview](images/preview.png)
 
