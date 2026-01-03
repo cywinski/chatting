@@ -22,6 +22,24 @@ export interface ProviderInfo {
   name: string;
 }
 
+export interface SamplingParams {
+  temperature: number;
+  top_p: number;
+  top_k: number;
+  frequency_penalty: number;
+  presence_penalty: number;
+  max_tokens: number | null;
+}
+
+export const DEFAULT_SAMPLING_PARAMS: SamplingParams = {
+  temperature: 1.0,
+  top_p: 1.0,
+  top_k: 0, // 0 means disabled
+  frequency_penalty: 0,
+  presence_penalty: 0,
+  max_tokens: null, // null means model default
+};
+
 export interface ChatCompletionRequest {
   model: string;
   messages: Array<{

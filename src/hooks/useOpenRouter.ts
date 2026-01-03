@@ -1,6 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { Message, StreamingResponse } from '../types';
+import { Message, StreamingResponse, SamplingParams } from '../types';
 import { streamChatCompletion } from '../utils/api';
+
+export interface SendMessageOptions {
+  providers?: string[];
+  samplingParams?: Partial<SamplingParams>;
+  systemPrompt?: string;
+}
 
 interface Conversation {
   id: string;
@@ -14,7 +20,7 @@ interface UseOpenRouterReturn {
   messages: Message[];
   responses: Record<string, StreamingResponse>;
   isLoading: boolean;
-  sendMessage: (content: string, selectedModels: string[], prefill: string, providers?: string[]) => Promise<void>;
+  sendMessage: (content: string, selectedModels: string[], prefill: string, options?: SendMessageOptions) => Promise<void>;
   clearChat: () => void;
   stopGeneration: () => void;
   saveConversation: (name?: string) => void;
@@ -45,7 +51,7 @@ export function useOpenRouter(): UseOpenRouterReturn {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, selectedModels: string[], prefill: string, providers?: string[]) => {
+    async (content: string, selectedModels: string[], prefill: string, options?: SendMessageOptions) => {
       if (!content.trim() || selectedModels.length === 0) return;
 
       // Add user message
@@ -128,7 +134,7 @@ export function useOpenRouter(): UseOpenRouterReturn {
               },
             },
             abortController.signal,
-            providers
+            options
           );
         } catch (error) {
           setResponses((prev) => ({

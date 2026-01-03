@@ -1,4 +1,4 @@
-import { ChatCompletionChunk, ModelInfo, ProviderInfo } from '../types';
+import { ChatCompletionChunk, ModelInfo, ProviderInfo, SamplingParams } from '../types';
 
 const API_BASE = 'https://openrouter.ai/api/v1';
 
@@ -58,15 +58,29 @@ export interface StreamCallbacks {
   onError: (error: Error) => void;
 }
 
+export interface StreamOptions {
+  providers?: string[];
+  samplingParams?: Partial<SamplingParams>;
+  systemPrompt?: string;
+}
+
 export async function streamChatCompletion(
   model: string,
   messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
   prefill: string | null,
   callbacks: StreamCallbacks,
   abortSignal?: AbortSignal,
-  providers?: string[]
+  options?: StreamOptions
 ): Promise<void> {
-  const apiMessages = [...messages];
+  const apiMessages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }> = [];
+
+  // Add system prompt if provided
+  if (options?.systemPrompt && options.systemPrompt.trim()) {
+    apiMessages.push({ role: 'system', content: options.systemPrompt.trim() });
+  }
+
+  // Add conversation messages
+  apiMessages.push(...messages);
 
   // Add assistant prefill if provided
   if (prefill && prefill.trim()) {
@@ -82,9 +96,26 @@ export async function streamChatCompletion(
     stream: true,
   };
 
+  // Add sampling parameters if provided
+  if (options?.samplingParams) {
+    const params = options.samplingParams;
+    if (params.temperature !== undefined) requestBody.temperature = params.temperature;
+    if (params.top_p !== undefined) requestBody.top_p = params.top_p;
+    if (params.top_k !== undefined && params.top_k > 0) requestBody.top_k = params.top_k;
+    if (params.frequency_penalty !== undefined && params.frequency_penalty !== 0) {
+      requestBody.frequency_penalty = params.frequency_penalty;
+    }
+    if (params.presence_penalty !== undefined && params.presence_penalty !== 0) {
+      requestBody.presence_penalty = params.presence_penalty;
+    }
+    if (params.max_tokens !== undefined && params.max_tokens !== null) {
+      requestBody.max_tokens = params.max_tokens;
+    }
+  }
+
   // Add provider filtering if specified
-  if (providers && providers.length > 0) {
-    requestBody.provider = { only: providers };
+  if (options?.providers && options.providers.length > 0) {
+    requestBody.provider = { only: options.providers };
   }
 
   const response = await fetch(`${API_BASE}/chat/completions`, {

@@ -4,16 +4,24 @@ import { ProviderSelector } from './components/ProviderSelector';
 import { MessageList } from './components/MessageList';
 import { ResponsePanel } from './components/ResponsePanel';
 import { ChatInput } from './components/ChatInput';
+import { Settings } from './components/Settings';
 import { useOpenRouter } from './hooks/useOpenRouter';
+import { SamplingParams, DEFAULT_SAMPLING_PARAMS } from './types';
 
 function App() {
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [selectedProviders, setSelectedProviders] = useState<string[]>([]);
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [samplingParams, setSamplingParams] = useState<SamplingParams>(DEFAULT_SAMPLING_PARAMS);
   const { messages, responses, isLoading, sendMessage, clearChat, stopGeneration, saveConversation, loadConversation } = useOpenRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = (message: string, prefill: string) => {
-    sendMessage(message, selectedModels, prefill, selectedProviders.length > 0 ? selectedProviders : undefined);
+    sendMessage(message, selectedModels, prefill, {
+      providers: selectedProviders.length > 0 ? selectedProviders : undefined,
+      samplingParams,
+      systemPrompt: systemPrompt || undefined,
+    });
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -76,6 +84,16 @@ function App() {
           </button>
         </div>
       </header>
+
+      {/* Settings */}
+      <div className="flex-shrink-0 max-w-6xl mx-auto w-full">
+        <Settings
+          systemPrompt={systemPrompt}
+          onSystemPromptChange={setSystemPrompt}
+          samplingParams={samplingParams}
+          onSamplingParamsChange={setSamplingParams}
+        />
+      </div>
 
       {/* Chat area */}
       <main className="flex-1 flex flex-col overflow-hidden max-w-6xl mx-auto w-full">
