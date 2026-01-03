@@ -2,7 +2,7 @@
 
 Local chat interface for OpenRouter API with assistant prefill and multi-model support.
 
-![Preview](images/preview.png)
+![Preview](images/preview_gemini.png)
 
 ## Features
 
